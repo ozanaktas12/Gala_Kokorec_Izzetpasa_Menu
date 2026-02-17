@@ -31,15 +31,15 @@
       <p class="helper-text">Menüyü inceleyip siparişinizi garsona iletebilirsiniz.</p>
 
       <nav class="section-nav" aria-label="Menü Bölümleri">
-        <a href="#kokorecler" class="is-active">Kokoreçler</a>
-        <a href="#midyeler">Midyeler</a>
-        <a href="#icecekler">İçecekler</a>
+        <a href="#kokorecler" class="is-active" data-nav="kokorecler">Kokoreçler</a>
+        <a href="#midyeler" data-nav="midyeler">Midyeler</a>
+        <a href="#icecekler" data-nav="icecekler">İçecekler</a>
       </nav>
     </div>
   </header>
 
   <main class="container">
-    <section class="category" id="kokorecler">
+    <section class="category" id="kokorecler" data-category="kokorecler">
       <h2>Kokoreçler</h2>
       <div class="menu-list">
         <article class="item">
@@ -94,7 +94,7 @@
       </div>
     </section>
 
-    <section class="category" id="midyeler">
+    <section class="category" id="midyeler" data-category="midyeler">
       <h2>Midyeler & Yan Ürünler</h2>
       <div class="menu-list">
         <article class="item">
@@ -132,7 +132,7 @@
       </div>
     </section>
 
-    <section class="category" id="icecekler">
+    <section class="category" id="icecekler" data-category="icecekler">
       <h2>İçecekler</h2>
       <div class="menu-list">
         <article class="item">
@@ -180,6 +180,11 @@
         </article>
       </div>
     </section>
+    <noscript>
+      <section class="category">
+        <p class="desc">Bu menünün en güncel hali için tarayıcınızda JavaScript açık olmalıdır.</p>
+      </section>
+    </noscript>
   </main>
 
   <footer class="footer">
@@ -190,6 +195,6 @@
     </div>
   </footer>
 
-  <script src="script.js"></script>
+  <script src="script.js" defer></script>
 </body>
 </html>

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gala Admin</title>
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <link rel="stylesheet" href="admin.css" />
+</head>
+<body>
+  <main class="container">
+    <h1>Gala Kokoreç • Admin</h1>
+    <p class="muted">Menü güncelleme paneli</p>
+
+    <!-- Login -->
+    <section id="loginCard" class="card">
+      <h2>Giriş</h2>
+      <p class="muted">Lütfen şifreyi girin.</p>
+      <div class="row">
+        <input id="passwordInput" type="password" placeholder="Şifre" />
+        <button id="loginBtn">Giriş Yap</button>
+      </div>
+      <p id="loginMsg" class="msg"></p>
+    </section>
+
+    <!-- Panel -->
+    <section id="panel" class="card hidden">
+      <div class="panel-top">
+        <h2>Menü Düzenle</h2>
+        <div class="panel-actions">
+          <button id="addItemBtn" class="secondary">+ Ürün Ekle</button>
+          <button id="saveBtn">Kaydet</button>
+          <button id="logoutBtn" class="danger">Çıkış</button>
+        </div>
+      </div>
+
+      <p class="muted">
+        Ürünleri düzenleyin, sıralamayı değiştirin, aktif/pasif yapın.
+        (Görsel için URL veya assets path yazın, örn: assets/images/midye.jpeg)
+      </p>
+
+      <div id="itemsContainer" class="items"></div>
+      <p id="saveMsg" class="msg"></p>
+    </section>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>
