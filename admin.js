@@ -94,13 +94,13 @@
   addItemBtn.addEventListener("click", () => {
     menuData.push({
       id: crypto.randomUUID(),
-      category: "kokorecler",
+      category: "midyeler",
       name: "",
       desc: "",
       price: 0,
       image: "",
       active: true,
-      order: getNextOrder("kokorecler")
+      order: getNextOrder("midyeler")
     });
     renderItems();
     saveMsg.textContent = "";
@@ -123,7 +123,7 @@
       const price = Number(priceStr);
       const order = Number(orderStr);
 
-      if (!name) continue; // adı boş olanı kaydetme
+      if (!name) continue;
       next.push({
         id,
         name,
@@ -138,8 +138,12 @@
 
     menuData = next.sort((a, b) => a.category.localeCompare(b.category) || a.order - b.order);
     setMenuData(menuData);
-    saveMsg.textContent = "Kaydedildi ✅ Menü güncellendi.";
+
+    // Güvenlik: kaydet sonrası oturumu kapat
+    localStorage.removeItem(STORAGE_KEY_AUTH);
+    saveMsg.textContent = "Kaydedildi. Güvenlik için oturum kapatıldı, tekrar giriş yapın.";
     renderItems();
+    showLogin();
   });
 
   function getNextOrder(category) {
@@ -181,8 +185,8 @@
             <input data-field="price" type="number" min="0" step="1" value="${item.price}" />
           </div>
           <div>
-            <label>Görsel (URL/path)</label>
-            <input data-field="image" value="${escapeHtml(item.image || "")}" placeholder="assets/images/..." />
+            <label>Görsel yolu (assets/images/...)</label>
+            <input data-field="image" value="${escapeHtml(item.image || "")}" placeholder="assets/images/... veya https://..." />
           </div>
         </div>
 
@@ -199,9 +203,18 @@
             <label>Aktif</label>
             <input data-field="active" type="checkbox" ${item.active ? "checked" : ""} />
           </div>
+          <div>
+            <label>Dosya seç (opsiyonel)</label>
+            <input data-field="file" type="file" accept="image/*" />
+          </div>
           <div class="actions">
             <button class="danger" data-remove="${item.id}">Sil</button>
           </div>
+        </div>
+
+        <div class="preview-row">
+          <img class="thumb" data-thumb alt="Önizleme" src="${escapeHtml(item.image || "")}" ${item.image ? "" : "hidden"} />
+          <span class="muted small">Öneri: Kalıcı olması için görsel yolunu assets/images/ olarak gir.</span>
         </div>
       `;
       itemsContainer.appendChild(el);
@@ -209,6 +222,57 @@
 
     itemsContainer.querySelectorAll("[data-remove]").forEach(btn => {
       btn.addEventListener("click", () => removeItem(btn.dataset.remove));
+    });
+
+    itemsContainer.querySelectorAll(".item[data-id]").forEach(card => {
+      const fileInput = card.querySelector("[data-field='file']");
+      const imageInput = card.querySelector("[data-field='image']");
+      const thumb = card.querySelector("[data-thumb]");
+
+      if (imageInput && thumb) {
+        imageInput.addEventListener("input", () => {
+          const v = imageInput.value.trim();
+          if (v) {
+            thumb.src = v;
+            thumb.hidden = false;
+          } else {
+            thumb.removeAttribute("src");
+            thumb.hidden = true;
+          }
+        });
+      }
+
+      if (fileInput && imageInput) {
+        fileInput.addEventListener("change", (e) => {
+          const file = e.target.files && e.target.files[0];
+          if (!file) return;
+
+          if (!file.type.startsWith("image/")) {
+            alert("Lütfen geçerli bir görsel dosyası seçin.");
+            fileInput.value = "";
+            return;
+          }
+
+          const maxSizeBytes = 2 * 1024 * 1024; // 2MB
+          if (file.size > maxSizeBytes) {
+            alert("Dosya çok büyük. Lütfen 2MB altı bir görsel seçin.");
+            fileInput.value = "";
+            return;
+          }
+
+          const reader = new FileReader();
+          reader.onload = () => {
+            const result = typeof reader.result === "string" ? reader.result : "";
+            imageInput.value = result;
+            imageInput.dispatchEvent(new Event("input", { bubbles: true }));
+            fileInput.value = "";
+          };
+          reader.onerror = () => {
+            alert("Dosya okunamadı. Tekrar deneyin.");
+          };
+          reader.readAsDataURL(file);
+        });
+      }
     });
   }
 
