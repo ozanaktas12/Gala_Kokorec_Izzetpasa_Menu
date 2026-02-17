@@ -15,9 +15,10 @@
     <!-- Login -->
     <section id="loginCard" class="card">
       <h2>Giriş</h2>
-      <p class="muted">Lütfen şifreyi girin.</p>
+      <p class="muted">Lütfen admin email ve şifrenizi girin.</p>
       <div class="row">
-        <input id="passwordInput" type="password" placeholder="Şifre" />
+        <input id="emailInput" type="email" placeholder="Admin email" autocomplete="username" />
+        <input id="passwordInput" type="password" placeholder="Şifre" autocomplete="current-password" />
         <button id="loginBtn">Giriş Yap</button>
       </div>
       <p id="loginMsg" class="msg"></p>
@@ -44,6 +45,7 @@
     </section>
   </main>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="admin.js"></script>
 </body>
 </html>
