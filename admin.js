@@ -96,6 +96,12 @@
     const price = Number(qaPrice?.value || 0);
     const category = qaCategory?.value || "midyeler";
     const description = (qaDescription?.value || "").trim();
+
+    if (!category) {
+      alert("Lütfen önce bir kategori seç.");
+      return;
+    }
+
     const order = Number(qaOrder?.value || getNextOrder(category));
 
     if (!name) {
@@ -157,10 +163,9 @@
     }
 
     if (newCategoryInput) newCategoryInput.value = "";
+    await loadAll();
+    if (qaCategory) qaCategory.value = slug;
     saveMsg.textContent = `Kategori eklendi: ${label}`;
-    await loadCategories();
-    renderCategorySelects();
-    renderItems();
   });
 
   removeCategoryBtn?.addEventListener("click", async () => {
@@ -182,10 +187,8 @@
       return;
     }
 
+    await loadAll();
     saveMsg.textContent = `Kategori silindi: ${slug}`;
-    await loadCategories();
-    renderCategorySelects();
-    renderItems();
   });
 
   saveBtn?.addEventListener("click", async () => {
@@ -231,7 +234,6 @@
     await Promise.all([loadCategories(), loadProducts()]);
     renderCategorySelects();
     renderItems();
-    saveMsg.textContent = "";
   }
 
   async function loadCategories() {
@@ -278,9 +280,25 @@
   }
 
   function renderCategorySelects() {
-    const options = categories.map((c) => `<option value="${escapeHtml(c.slug)}">${escapeHtml(c.label)}</option>`).join("");
-    if (qaCategory) qaCategory.innerHTML = options;
-    if (removeCategorySelect) removeCategorySelect.innerHTML = options;
+    const options = categories
+      .map((c) => `<option value="${escapeHtml(c.slug)}">${escapeHtml(c.label)}</option>`)
+      .join("");
+
+    if (qaCategory) {
+      const prev = qaCategory.value;
+      qaCategory.innerHTML = options;
+      if (prev && categories.some((c) => c.slug === prev)) {
+        qaCategory.value = prev;
+      }
+    }
+
+    if (removeCategorySelect) {
+      const prevRemove = removeCategorySelect.value;
+      removeCategorySelect.innerHTML = options;
+      if (prevRemove && categories.some((c) => c.slug === prevRemove)) {
+        removeCategorySelect.value = prevRemove;
+      }
+    }
   }
 
   function getNextOrder(category) {
