@@ -203,10 +203,6 @@
             <label>Aktif</label>
             <input data-field="active" type="checkbox" ${item.active ? "checked" : ""} />
           </div>
-          <div>
-            <label>Dosya seç (opsiyonel)</label>
-            <input data-field="file" type="file" accept="image/*" />
-          </div>
           <div class="actions">
             <button class="danger" data-remove="${item.id}">Sil</button>
           </div>
@@ -214,7 +210,7 @@
 
         <div class="preview-row">
           <img class="thumb" data-thumb alt="Önizleme" src="${escapeHtml(item.image || "")}" ${item.image ? "" : "hidden"} />
-          <span class="muted small">Öneri: Kalıcı olması için görsel yolunu assets/images/ olarak gir.</span>
+          <span class="muted small">Görsel yolunu assets/images/ olarak gir.</span>
         </div>
       `;
       itemsContainer.appendChild(el);
@@ -225,7 +221,6 @@
     });
 
     itemsContainer.querySelectorAll(".item[data-id]").forEach(card => {
-      const fileInput = card.querySelector("[data-field='file']");
       const imageInput = card.querySelector("[data-field='image']");
       const thumb = card.querySelector("[data-thumb]");
 
@@ -242,37 +237,7 @@
         });
       }
 
-      if (fileInput && imageInput) {
-        fileInput.addEventListener("change", (e) => {
-          const file = e.target.files && e.target.files[0];
-          if (!file) return;
-
-          if (!file.type.startsWith("image/")) {
-            alert("Lütfen geçerli bir görsel dosyası seçin.");
-            fileInput.value = "";
-            return;
-          }
-
-          const maxSizeBytes = 2 * 1024 * 1024; // 2MB
-          if (file.size > maxSizeBytes) {
-            alert("Dosya çok büyük. Lütfen 2MB altı bir görsel seçin.");
-            fileInput.value = "";
-            return;
-          }
-
-          const reader = new FileReader();
-          reader.onload = () => {
-            const result = typeof reader.result === "string" ? reader.result : "";
-            imageInput.value = result;
-            imageInput.dispatchEvent(new Event("input", { bubbles: true }));
-            fileInput.value = "";
-          };
-          reader.onerror = () => {
-            alert("Dosya okunamadı. Tekrar deneyin.");
-          };
-          reader.readAsDataURL(file);
-        });
-      }
+      
     });
   }
 
