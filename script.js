@@ -12,64 +12,117 @@
 
   const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  const categoryTitles = {
-    kokorecler: "Kokoreçler",
-    midyeler: "Midyeler",
-    icecekler: "İçecekler"
-  };
-
   init();
 
   async function init() {
-    await renderMenuFromDb();
-    initSectionNav();
+    const loadingEl = document.getElementById("menuLoading");
+    let sections = document.querySelectorAll(".menu-section");
 
-    const updatedText = document.getElementById("updatedText");
-    if (updatedText) {
-      updatedText.textContent = `Son güncelleme: ${new Date().toLocaleDateString("tr-TR")}`;
+    // İlk açılışta eski statik içeriği gizle
+    sections.forEach((s) => s.classList.add("is-hidden"));
+
+    try {
+      await renderMenuFromDb();
+      sections = document.querySelectorAll(".menu-section");
+      initSectionNav();
+
+      const updatedText = document.getElementById("updatedText");
+      if (updatedText) {
+        updatedText.textContent = `Son güncelleme: ${new Date().toLocaleDateString("tr-TR")}`;
+      }
+
+      // DB verisi yüklendikten sonra menüyü göster
+      sections.forEach((s) => s.classList.remove("is-hidden"));
+
+      if (loadingEl) loadingEl.remove();
+    } catch (e) {
+      console.error("Init hatası:", e);
+      if (loadingEl) {
+        loadingEl.textContent = "Menü yüklenemedi. Lütfen tekrar deneyin.";
+      }
     }
   }
 
   async function renderMenuFromDb() {
-    const { data, error } = await sb
+    // 1) Aktif kategorileri çek
+    const { data: catData, error: catError } = await sb
+      .from("menu_categories")
+      .select("slug,label,is_active,sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("label", { ascending: true });
+
+    if (catError) {
+      console.error("Kategori çekilemedi:", catError.message);
+      throw catError;
+    }
+
+    // 2) Aktif ürünleri çek
+    const { data: productData, error: productError } = await sb
       .from("products")
       .select("id,name,description,category,price,image_url,is_active,sort_order")
       .eq("is_active", true)
-      .order("category", { ascending: true })
       .order("sort_order", { ascending: true });
 
-    if (error) {
-      console.error("Menü çekilemedi:", error.message);
-      return;
+    if (productError) {
+      console.error("Menü çekilemedi:", productError.message);
+      throw productError;
     }
 
-    const grouped = {
-      kokorecler: [],
-      midyeler: [],
-      icecekler: []
-    };
+    const categories = (catData || []).map((c) => ({
+      slug: c.slug,
+      label: c.label || labelizeCategory(c.slug),
+      sort_order: c.sort_order ?? 999
+    }));
 
-    data.forEach((item) => {
-      if (grouped[item.category]) grouped[item.category].push(item);
+    const products = productData || [];
+
+    // Ürünlerde olup kategori tablosunda olmayanlar için fallback
+    const missing = Array.from(new Set(products.map((p) => p.category))).filter(
+      (slug) => slug && !categories.some((c) => c.slug === slug)
+    );
+    missing.forEach((slug, i) => {
+      categories.push({ slug, label: labelizeCategory(slug), sort_order: 10000 + i });
     });
 
-    for (const cat of Object.keys(grouped)) {
-      const section = document.getElementById(cat);
-      if (!section) continue;
+    categories.sort((a, b) => (a.sort_order - b.sort_order) || a.label.localeCompare(b.label, "tr"));
 
-      // Başlık
-      const h2 = section.querySelector("h2");
-      if (h2) h2.textContent = categoryTitles[cat];
+    // Kategori bazlı grupla
+    const grouped = {};
+    categories.forEach((c) => {
+      grouped[c.slug] = [];
+    });
 
-      // Liste container
-      let menuList = section.querySelector(".menu-list");
-      if (!menuList) {
-        menuList = document.createElement("div");
-        menuList.className = "menu-list";
-        section.appendChild(menuList);
-      }
+    products.forEach((item) => {
+      if (!grouped[item.category]) grouped[item.category] = [];
+      grouped[item.category].push(item);
+    });
 
-      menuList.innerHTML = grouped[cat]
+    const main = document.querySelector("main.container");
+    const nav = document.querySelector(".section-nav");
+    if (!main || !nav) return;
+
+    // Eski sectionları temizle (menu-section olanlar)
+    main.querySelectorAll(".menu-section").forEach((s) => s.remove());
+
+    // Nav linklerini temizle
+    nav.innerHTML = "";
+
+    categories.forEach((cat, index) => {
+      const section = document.createElement("section");
+      section.className = "category menu-section";
+      section.id = cat.slug;
+      section.dataset.category = cat.slug;
+
+      section.innerHTML = `
+        <h2>${escapeHtml(cat.label)}</h2>
+        <div class="menu-list"></div>
+      `;
+
+      const menuList = section.querySelector(".menu-list");
+      const items = grouped[cat.slug] || [];
+
+      menuList.innerHTML = items
         .map((item) => {
           const imgHtml = item.image_url
             ? `<img src="${escapeHtml(item.image_url)}" alt="${escapeHtml(item.name)}" class="item-image" />`
@@ -89,7 +142,20 @@
           `;
         })
         .join("");
-    }
+
+      if (!items.length) {
+        menuList.innerHTML = `<p class="empty-note">Bu kategoride henüz ürün yok.</p>`;
+      }
+
+      main.appendChild(section);
+
+      const link = document.createElement("a");
+      link.href = `#${cat.slug}`;
+      link.dataset.nav = cat.slug;
+      link.textContent = cat.label;
+      if (index === 0) link.classList.add("is-active");
+      nav.appendChild(link);
+    });
   }
 
   function formatPrice(value) {
@@ -133,6 +199,20 @@
         if (id) setActiveById(id);
       });
     });
+  }
+
+  function labelizeCategory(raw) {
+    if (!raw) return "";
+    const map = {
+      kokorecler: "Kokoreçler",
+      midyeler: "Midyeler",
+      icecekler: "İçecekler"
+    };
+    if (map[raw]) return map[raw];
+    return raw
+      .split("_")
+      .map((w) => (w ? w.charAt(0).toUpperCase() + w.slice(1) : ""))
+      .join(" ");
   }
 
   function escapeHtml(str) {

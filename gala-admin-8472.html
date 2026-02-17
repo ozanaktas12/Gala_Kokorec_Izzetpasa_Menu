@@ -29,7 +29,6 @@
       <div class="panel-top">
         <h2>Menü Düzenle</h2>
         <div class="panel-actions">
-          <button id="addItemBtn" class="secondary">+ Ürün Ekle</button>
           <button id="saveBtn">Kaydet</button>
           <button id="logoutBtn" class="danger">Çıkış</button>
         </div>
@@ -37,8 +36,35 @@
 
       <p class="muted">
         Ürünleri düzenleyin, sıralamayı değiştirin, aktif/pasif yapın.
-        (Görsel için URL veya assets path yazın, örn: assets/images/midye.jpeg)
+        Görseller için "Fotoğraf yükle" kullanabilir veya URL yazabilirsiniz.
       </p>
+
+      <!-- Hızlı ürün ekleme -->
+      <div class="card" id="quickAddCard">
+        <h3>Hızlı Ürün Ekle</h3>
+        <p class="muted">Yeni ürünü buradan ekleyebilirsin.</p>
+
+        <div class="quick-grid">
+          <input id="qaName" type="text" placeholder="Ürün adı" />
+          <input id="qaPrice" type="number" min="0" step="0.01" placeholder="Fiyat (₺)" />
+          <select id="qaCategory"></select>
+          <input id="qaOrder" type="number" min="1" step="1" placeholder="Sıra (opsiyonel)" />
+          <input id="qaDescription" type="text" placeholder="Açıklama (opsiyonel)" />
+          <button id="qaAddBtn" type="button" class="secondary">Ürünü Ekle</button>
+        </div>
+
+        <hr class="sep" />
+
+        <h3>Kategori Yönetimi</h3>
+        <div class="quick-grid">
+          <input id="newCategoryInput" type="text" placeholder="Yeni kategori (örn: tatlilar)" />
+          <button id="addCategoryBtn" type="button">Kategori Ekle</button>
+          <select id="removeCategorySelect"></select>
+          <button id="removeCategoryBtn" type="button" class="danger">Kategoriyi Sil</button>
+        </div>
+
+        <p class="muted small">Not: Kategori adı küçük harf ve boşluksuz olmalı (örn: tatlilar).</p>
+      </div>
 
       <div id="itemsContainer" class="items"></div>
       <p id="saveMsg" class="msg"></p>

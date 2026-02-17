@@ -161,3 +161,38 @@ button.danger{ background:var(--danger); color:#fff; }
     width:100%;
   }
 }
+/* --- Quick Add Card Styles --- */
+.small{ font-size:.82rem; }
+
+.quick-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  margin-bottom:8px;
+}
+
+.sep{
+  border:none;
+  border-top:1px dashed #334155;
+  margin:12px 0;
+}
+
+#quickAddCard h3{
+  margin:0 0 6px;
+  font-size:1rem;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible{
+  outline:2px solid #facc15;
+  outline-offset:2px;
+}
+
+input, select, button{
+  max-width:100%;
+}
+
+@media (max-width:680px){
+  .quick-grid{ grid-template-columns:1fr; }
+}
